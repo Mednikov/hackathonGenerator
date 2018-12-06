@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Генератор идей</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700,800,900&amp;subset=cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+  <style>
+    html, body{font-family: 'Montserrat',sans-serif;}
+    a.link{border-bottom: .08em solid rgba(0,0,0, .2); transition: all .15s ease-in-out; text-decoration:none;}
+    a.link:hover,a.link:focus,a.link:active{border-bottom: .08em solid rgba(0,0,0, 1); text-decoration:none;}
+    .vertical-center {min-height: 100%; min-height: 100vh; display: flex; align-items: center;}
+    .result-text a{color: black;}
+    .btn{border-radius: 1.5em;}
+    @media (min-width: 544px) {.result-text{font-size:1.125rem;}}
+    @media (min-width: 768px) {.result-text{font-size:1.25rem;}}
+    @media (min-width: 992px) {.result-text{font-size:1.375rem;}}
+    @media (min-width: 1200px) {.result-text{font-size:1.5rem;}}
+
+    .bg-logo{position:absolute; height:100vh; bottom:-100px; right:-100px; opacity:.25; -webkit-filter:grayscale(1); filter:grayscale(1);}
+  </style>
+</head>
+<body class="bg-light">
+
+
+
+  <nav class="navbar fixed-top navbar-light border-bottom bg-light py-3">
+    <a class="navbar-brand" href="#">
+      <img src="ik-logo-square.png" width="30" height="30" class="d-inline-block align-top" alt=""> <strong class="logo pl-2">Генератор</strong>
+    </a>
+    <span class="navbar-text">
+      <a href="#" data-toggle="modal" data-target="#modal"><i class="far fa-question-circle"></i></a>
+    </span>
+  </nav>
+
+
+  <section id="app" class="h-100 vertical-center">
+      <!-- <img src="ik-logo-square.png" class="bg-logo" alt=""> -->
+      <div class="container">
+        <div class="row">
+          <div v-if="show" class="result col-12 text-center mb-3">
+            <!-- <h1>{{message}}</h1> -->
+            <p class="result-text">
+              <a :href="url" target="_blank" v-if="title" class="link"><strong>{{ title }}</strong></a>
+            </p>
+          </div>
+          <div class="col-12 text-center">
+            <button @click="generate" type="button" class="btn btn-success btn-generate btn-rounded py-2 px-4">Сгенерировать тему</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalLabel">{{ repData.name }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>{{ repData.description }}</p>
+              <p>
+                <a :href="repData.html_url" target="_blank"  class="btn btn-secondary btn-dark"><i class="fab fa-github pr-2"></i> Репозиторий на GitHub</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/marked@0.3.6"></script>
+
+  <script>
+    const github = "https://api.github.com/repos/";
+    const repository = "infoculture/datatasks";
+    const issues = "/issues";
+    const token = '?personal_token=a6c609a367bb7c6bacc15243a0ce7c05c5039731';
+
+    var app = new Vue({
+      el: '#app',
+      data: {
+        show: false,
+        length: '',
+        title: '',
+        url: '',
+        body: '',
+        gitData: [],
+        repData: [],
+        repName: '',
+        repDescr: '',
+      },
+      methods: {
+        generate: function(event){
+          this.show = true
+          var i = Math.floor(Math.random() * this.gitData.length)
+          this.title = this.gitData[i].title
+          this.url = this.gitData[i].html_url
+          this.body = marked(this.gitData[i].body)
+          $('.btn-generate').html('Сгенерировать ещё')
+        }
+      },
+      mounted() {
+        url = github + repository + issues + token
+        repUrl = github + repository + token
+        axios.get(url).then(response => {
+          this.gitData = response.data
+        })
+        axios.get(repUrl).then(response => {
+          this.repData = response.data
+        })
+      }
+    })
+  </script>
+</body>
+</html>
